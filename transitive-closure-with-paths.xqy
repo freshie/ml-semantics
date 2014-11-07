@@ -1,4 +1,6 @@
-
+(:
+    This code was taken from the marklogic Semantics functions and was rework in order to have paths shown
+:)
 xquery version "1.0-ml"; 
 
 declare function local:bfs($s as sem:iri*, $adjV) as map:map {
