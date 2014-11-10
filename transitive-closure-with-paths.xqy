@@ -32,9 +32,7 @@ declare function local:transitive-closure(
     local:bfs($seeds, function($queue as map:map) as map:map { 
         let $level := map:map()
        let $buildMap := 
-          for $triple in cts:triples( (map:keys($queue) ! sem:iri(.)) ,$preds,())
-          let $_ := map:put($level,  sem:triple-object($triple), fn:concat(map:get($queue, sem:triple-subject($triple)), " » ", sem:triple-object($triple)))
-          return sem:triple-subject($triple) 
+          cts:triples( (map:keys($queue) ! sem:iri(.)) ,$preds,()) ! map:put($level,  sem:triple-object(.), fn:concat(map:get($queue, sem:triple-subject(.)), " » ", sem:triple-object(.)))
         return $level
     })
 };
