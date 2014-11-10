@@ -18,7 +18,7 @@ declare function local:bfs-inner($visited as map:map, $queue as map:map?, $adjac
             for $key in  map:keys($nextQueue)
             return
                 if (map:contains($visited, $key))
-                then ()
+                then (map:put($visited, $key, (map:get($visited, $key), map:get($nextQueue, $key))))
                 else (map:put($visited, $key, map:get($nextQueue, $key)), $key)
         let $thingstoEnqueue := map:map()
         let $_ := $notVisted ! map:put($thingstoEnqueue, ., map:get($nextQueue, .))
@@ -43,5 +43,5 @@ local:transitive-closure(
    sem:iri("http://www.lds.org/concept/gs/ark"),
    sem:iri("http://www.w3.org/2004/02/skos/core#related")
 ) 
-return  map:get($transitive-closureWithPath, "http://www.lds.org/concept/gs/mary-mother-of-jesus") 
-(:map:keys( $transitive-closureWithPath ) ! map:get($transitive-closureWithPath, .):)
+return map:get($transitive-closureWithPath, "http://www.lds.org/concept/gs/jesus-christ") 
+ (:  map:keys( $transitive-closureWithPath ) ! map:get($transitive-closureWithPath, .) :)
