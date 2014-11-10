@@ -18,7 +18,22 @@ declare function local:bfs-inner($visited as map:map, $queue as map:map?, $adjac
             for $key in  map:keys($nextQueue)
             return
                 if (map:contains($visited, $key))
-                then (map:put($visited, $key, (map:get($visited, $key), map:get($nextQueue, $key))))
+                then ( 
+                  let $visitedValue := map:get($visited, $key)
+                  let $pathMap :=
+                    if (fn:exists($visitedValue[. castable as xs:string]))
+                    then ( 
+                       let $path := map:map()
+                       let $_ :=  map:put($path, "1", $visitedValue)
+                       let $_ :=  map:put($path, "2", map:get($nextQueue, $key))
+                       return $path
+                    ) else (
+                     let $_ := map:put($visitedValue,  xs:string(map:count($visitedValue) + 1), map:get($nextQueue, $key))
+                     return  $visitedValue
+                    )
+                  return 
+                   map:put($visited,  $key, $pathMap)
+                )
                 else (map:put($visited, $key, map:get($nextQueue, $key)), $key)
         let $thingstoEnqueue := map:map()
         let $_ := $notVisted ! map:put($thingstoEnqueue, ., map:get($nextQueue, .))
@@ -32,7 +47,7 @@ declare function local:transitive-closure(
     local:bfs($seeds, function($queue as map:map) as map:map { 
         let $level := map:map()
        let $buildMap := 
-          cts:triples( (map:keys($queue) ! sem:iri(.)) ,$preds,()) ! map:put($level,  sem:triple-object(.), fn:concat(map:get($queue, sem:triple-subject(.)), " » ", sem:triple-object(.)))
+          cts:triples( (map:keys($queue) ! sem:iri(.)) ,$preds,()) ! map:put($level,  sem:triple-object(.), (map:get($queue, sem:triple-subject(.)), sem:triple-object(.)))
         return $level
     })
 };
@@ -41,5 +56,5 @@ local:transitive-closure(
    sem:iri("http://www.lds.org/concept/gs/ark"),
    sem:iri("http://www.w3.org/2004/02/skos/core#related")
 ) 
-return map:get($transitive-closureWithPath, "http://www.lds.org/concept/gs/jesus-christ") 
- (:  map:keys( $transitive-closureWithPath ) ! map:get($transitive-closureWithPath, .) :)
+return map:get($transitive-closureWithPath, "http://www.lds.org/concept/gs/jesus-christ")
+ (: map:keys( $transitive-closureWithPath ) ! map:get($transitive-closureWithPath, .) :)
