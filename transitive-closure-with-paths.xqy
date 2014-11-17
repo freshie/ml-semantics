@@ -5,8 +5,14 @@ xquery version "1.0-ml";
 
 declare function local:bfs($s as sem:iri*, $limit as xs:int, $adjV) as map:map {
     let $visited := map:map()
-    let $_ := $s ! map:put($visited, ., .)
-    return local:bfs-inner($visited, $visited, $limit, $adjV)
+    let $_ := 
+      for $spart in $s 
+      let $spartMap := map:map()
+      let $_ := map:put($spartMap, $spart, $spart)
+      return map:put($visited, $spart, $spartMap)
+    let $queue :=  map:map()
+    let $_ := $s ! map:put($queue, ., .)
+    return local:bfs-inner($visited, $queue, $limit, $adjV)
 };
 
 declare function local:bfs-inner($visited as map:map, $queue as map:map?, $limit as xs:int, $adjacentVertices)  as map:map {
@@ -19,22 +25,17 @@ declare function local:bfs-inner($visited as map:map, $queue as map:map?, $limit
             return
                 if (map:contains($visited, $key))
                 then ( 
-                  let $visitedValue := map:get($visited, $key)
-                  let $pathMap :=
-                    if (fn:exists($visitedValue[. castable as xs:string]))
-                    then ( 
-                       let $path := map:map()
-                       let $_ :=  map:put($path, "1", $visitedValue)
-                       let $_ :=  map:put($path, "2", map:get($nextQueue, $key))
-                       return $path
-                    ) else (
-                     let $_ := map:put($visitedValue,  xs:string(map:count($visitedValue) + 1), map:get($nextQueue, $key))
-                     return  $visitedValue
-                    )
+                  let $visitedMap := map:get($visited, $key)
+                  let $_ := map:put($visitedMap,  xs:string(map:count($visitedMap) + 1), map:get($nextQueue, $key))
                   return 
-                   map:put($visited,  $key, $pathMap)
+                   map:put($visited,  $key, $visitedMap)
                 )
-                else (map:put($visited, $key, map:get($nextQueue, $key)), $key)
+                else 
+                  let $pathMap := map:map()
+                  let $_ :=  map:put($pathMap, "1", map:get($nextQueue, $key))
+                  let $_ := map:put($visited, $key, $pathMap) 
+                  return $key
+                
         let $thingstoEnqueue := map:map()
         let $_ := $notVisted ! map:put($thingstoEnqueue, ., map:get($nextQueue, .))
         return  local:bfs-inner($visited, $thingstoEnqueue, ($limit -1), $adjacentVertices)
